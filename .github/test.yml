@@ -1,0 +1,44 @@
+name: Test Repo
+
+on:
+  push:      # Run on pushes to main (edit branch if needed)
+    branches: [ main ]
+  pull_request:  # Run on PRs
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual trigger from Actions tab
+
+jobs:
+  test:
+    runs-on: ubuntu-latest  # Free Linux runner with bash, Python 3.x, Docker
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python  # For the 20.3% Python code
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'  # Or specific version from your code
+
+    - name: Install Python dependencies  # If you have requirements.txt
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Run Shell tests  # For 78.6% shell scripts—adapt to your files
+      run: |
+        chmod +x *.sh  # Make scripts executable
+        if [ -f test.sh ]; then ./test.sh; fi  # Or bash tests/all.sh, etc.
+        # Add more: find . -name "*.sh" -exec bash {} \;
+
+    - name: Run Python tests  # e.g., pytest for unit tests
+      run: |
+        if command -v pytest >/dev/null; then pytest; fi  # Install pytest in deps if needed
+        # Or: python -m unittest discover
+
+    - name: Build and test Docker  # For 1.1% Dockerfile
+      run: |
+        if [ -f Dockerfile ]; then
+          docker build -t myrepo .
+          docker run --rm myrepo --help  # Or run a test command inside
+        fi
